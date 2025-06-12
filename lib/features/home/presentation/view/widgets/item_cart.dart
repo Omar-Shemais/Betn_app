@@ -1,21 +1,28 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:furnitrue_app/core/utils/app_colors/app_colors.dart';
 import 'package:furnitrue_app/core/utils/route_utils/route_utils.dart';
 import 'package:furnitrue_app/core/widgets/custom_plus_icon.dart';
 import 'package:furnitrue_app/core/widgets/custom_text.dart';
+import 'package:furnitrue_app/features/favorite/manger/cubit/favorite_cubit.dart';
 import 'package:furnitrue_app/features/home/data/model/prouduct_response_model.dart';
 import 'package:furnitrue_app/features/product_details/presentation/view/product_details_view.dart';
 
 // ignore: must_be_immutable
-class ItemCart extends StatelessWidget {
+class ItemCart extends StatefulWidget {
   final Product product;
   void Function()? onPlusTap;
 
   ItemCart({super.key, required this.product, this.onPlusTap});
 
+  @override
+  State<ItemCart> createState() => _ItemCartState();
+}
+
+class _ItemCartState extends State<ItemCart> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -23,48 +30,67 @@ class ItemCart extends StatelessWidget {
       height: 204.h,
       child: InkWell(
         onTap: () {
-          RouteUtils.push(ProductDetailsView(product: product));
+          RouteUtils.push(ProductDetailsView(product: widget.product));
         },
         child: Column(
           children: [
             Stack(
               children: [
                 Container(
-                  width: 127.w,
-                  height: 124.h,
-                  decoration: BoxDecoration(
-                    color: AppColors.offWhite,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(8),
-                      topRight: Radius.circular(8),
+                  color: AppColors.offWhite,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(8.r),
+                      topRight: Radius.circular(8.r),
                     ),
-                    image:
-                        product.images.isNotEmpty
-                            ? DecorationImage(
-                              image: NetworkImage(
-                                "https://zbooma.com/furniture_api/${product.images.first}",
-                              ),
+                    child:
+                        widget.product.images.isNotEmpty
+                            ? Image.network(
+                              "https://zbooma.com/furniture_api/${widget.product.images.first}",
+                              width: 127.w,
+                              height: 124.h,
                               fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Image.asset(
+                                  'assets/images/cart_placeholder.png',
+                                  width: 127.w,
+                                  height: 124.h,
+                                  fit: BoxFit.cover,
+                                );
+                              },
                             )
-                            : const DecorationImage(
-                              image: AssetImage(
-                                'assets/images/cart_placeholder.png',
-                              ),
+                            : Image.asset(
+                              'assets/images/cart_placeholder.png',
+                              width: 127.w,
+                              height: 124.h,
                               fit: BoxFit.cover,
                             ),
                   ),
                 ),
-                Positioned(
-                  top: 10.h,
-                  right: 10.w,
-                  child: Icon(
-                    Icons.favorite_border_outlined,
-                    color: AppColors.primaryColor,
-                    size: 20.h,
-                  ),
+                BlocBuilder<FavoriteCubit, FavoriteState>(
+                  builder: (context, state) {
+                    final cubit = context.read<FavoriteCubit>();
+                    final isFav = cubit.isFavorite(widget.product);
+                    return Positioned(
+                      top: 10.h,
+                      right: 10.w,
+                      child: InkWell(
+                        onTap: () {
+                          cubit.toggleFavorite(widget.product);
+                          setState(() {});
+                        },
+                        child: Icon(
+                          isFav ? Icons.favorite : Icons.favorite_border,
+                          size: 16.sp,
+                          color: AppColors.primaryColor,
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
+
             Container(
               width: double.infinity,
               padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
@@ -79,18 +105,18 @@ class ItemCart extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  AppText(title: product.name),
+                  AppText(title: widget.product.name),
                   SizedBox(height: 10.h),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       AppText(
-                        title: '${product.price} \$',
+                        title: '${widget.product.price} \$',
                         fontSize: 10,
                         color: AppColors.primaryColor,
                         fontWeight: FontWeight.w500,
                       ),
-                      CustomPlusIcon(onTap: onPlusTap),
+                      CustomPlusIcon(onTap: widget.onPlusTap),
                     ],
                   ),
                 ],

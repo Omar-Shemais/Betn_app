@@ -8,6 +8,7 @@ import 'package:furnitrue_app/core/widgets/app_loading_indicator.dart';
 import 'package:furnitrue_app/core/widgets/custom_text.dart';
 import 'package:furnitrue_app/core/widgets/snack_bar.dart';
 import 'package:furnitrue_app/features/cart/manger/cart_cubit/cart_cubit.dart';
+import 'package:furnitrue_app/features/favorite/manger/cubit/favorite_cubit.dart';
 import 'package:furnitrue_app/features/home/manger/Categories_cubit/cubit/category_cubit.dart';
 import 'package:furnitrue_app/features/home/manger/Categories_cubit/cubit/category_state.dart';
 import 'package:furnitrue_app/features/home/manger/product_cubit/cubit/product_cubit.dart';
@@ -17,8 +18,19 @@ import 'package:furnitrue_app/features/home/presentation/view/widgets/home_app_b
 import 'package:furnitrue_app/features/home/presentation/view/widgets/home_search_bar.dart';
 import 'package:furnitrue_app/features/home/presentation/view/widgets/item_cart.dart';
 
-class HomeViewBody extends StatelessWidget {
+class HomeViewBody extends StatefulWidget {
   const HomeViewBody({super.key});
+
+  @override
+  State<HomeViewBody> createState() => _HomeViewBodyState();
+}
+
+class _HomeViewBodyState extends State<HomeViewBody> {
+  @override
+  void initState() {
+    context.read<FavoriteCubit>().loadFavorites();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {

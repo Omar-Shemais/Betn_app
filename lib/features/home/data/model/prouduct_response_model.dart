@@ -41,4 +41,14 @@ class Product {
       images: List<String>.from(json['images']),
     );
   }
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'price': price,
+      'category_name': categoryName,
+      'images': images,
+    };
+  }
 }

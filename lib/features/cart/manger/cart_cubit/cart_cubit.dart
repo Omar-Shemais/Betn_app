@@ -16,6 +16,7 @@ class CartCubit extends Cubit<CartState> {
         productId: productId,
         quantity: quantity,
       );
+      await getCartItems();
       emit(CartSuccess(message: "تمت إضافة المنتج إلى السلة"));
     } catch (e) {
       emit(CartError(error: e.toString()));
@@ -35,10 +36,18 @@ class CartCubit extends Cubit<CartState> {
 
   Future<void> deleteCartItem(int cartId) async {
     try {
-      emit(CartLoading());
       await repo.deleteCartItem(cartId: cartId);
-      emit(CartSuccess(message: "تم حذف المنتج من السلة"));
-      await getCartItems();
+
+      // ✅ remove item locally without getCartItems()
+      if (state is CartSuccessWithItems) {
+        final currentItems = List<CartItem>.from(
+          (state as CartSuccessWithItems).items,
+        );
+        currentItems.removeWhere((item) => item.id == cartId);
+        emit(CartSuccessWithItems(items: currentItems));
+      } else {
+        emit(CartSuccess(message: "تم حذف المنتج من السلة"));
+      }
     } catch (e) {
       emit(CartError(error: e.toString()));
     }
@@ -46,11 +55,57 @@ class CartCubit extends Cubit<CartState> {
 
   Future<void> updateCartItemQuantity(int cartId, int quantity) async {
     try {
-      emit(CartLoading());
       await repo.updateCartQuantity(cartId: cartId, quantity: quantity);
 
-      emit(CartSuccess(message: "تم تحديث الكمية والسعر الإجمالي بنجاح"));
-      getCartItems();
+      if (state is CartSuccessWithItems) {
+        final currentItems = List<CartItem>.from(
+          (state as CartSuccessWithItems).items,
+        );
+        final index = currentItems.indexWhere((item) => item.id == cartId);
+        if (index != -1) {
+          final old = currentItems[index];
+          currentItems[index] = CartItem(
+            id: old.id,
+            name: old.name,
+            quantity: quantity,
+            price: old.price,
+          );
+          emit(CartSuccessWithItems(items: currentItems));
+        }
+      }
+    } catch (e) {
+      emit(CartError(error: e.toString()));
+    }
+  }
+
+  bool isInCart(String productName) {
+    if (state is CartSuccessWithItems) {
+      final items = (state as CartSuccessWithItems).items;
+      return items.any((item) => item.name == productName);
+    }
+    return false;
+  }
+
+  int? getCartIdByProductName(String name) {
+    if (state is CartSuccessWithItems) {
+      final items = (state as CartSuccessWithItems).items;
+      try {
+        return items.firstWhere((item) => item.name == name).id;
+      } catch (_) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  Future<void> clearCart() async {
+    try {
+      emit(CartLoading());
+      await repo.deleteCartItem(
+        cartId: 0 - 10000000,
+      ); // Assuming 0 clears the cart
+      emit(CartSuccess(message: "تم مسح السلة بنجاح"));
+      await getCartItems();
     } catch (e) {
       emit(CartError(error: e.toString()));
     }

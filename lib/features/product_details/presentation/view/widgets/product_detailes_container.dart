@@ -10,12 +10,15 @@ class ProductDetailesContainer extends StatelessWidget {
     required this.title,
     required this.price,
     required this.description,
-    this.onTap,
+    required this.isInCart,
+    required this.onToggleCart,
   });
+
   final String title;
   final String price;
   final String description;
-  final void Function()? onTap;
+  final bool isInCart;
+  final VoidCallback onToggleCart;
 
   @override
   Widget build(BuildContext context) {
@@ -70,12 +73,18 @@ class ProductDetailesContainer extends StatelessWidget {
                 );
               }),
             ),
-            Spacer(),
+            const Spacer(),
+
+            /// ✅ Button with dynamic label & color
             AppButton(
-              btnText: 'Add to cart',
+              btnText: isInCart ? 'الحذف من السله' : 'اضافة الى السلة',
               width: double.infinity,
-              onTap: onTap,
+              btnColor:
+                  isInCart ? AppColors.lightTextColor : AppColors.primaryColor,
+              textColor: AppColors.white,
+              onTap: onToggleCart,
             ),
+
             SizedBox(height: 30.h),
           ],
         ),

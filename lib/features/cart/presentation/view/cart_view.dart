@@ -5,6 +5,7 @@ import 'package:furnitrue_app/features/cart/data/repo/paymob_repo.dart';
 import 'package:furnitrue_app/features/cart/manger/cart_cubit/cart_cubit.dart';
 import 'package:furnitrue_app/features/cart/manger/payment_cubit/payment_cubit.dart';
 import 'package:furnitrue_app/features/cart/presentation/view/widgets/cart_view_body.dart';
+import 'package:furnitrue_app/features/favorite/manger/cubit/favorite_cubit.dart';
 
 class CartView extends StatelessWidget {
   const CartView({super.key});
@@ -18,6 +19,7 @@ class CartView extends StatelessWidget {
             create: (context) => CartCubit(CartRepo())..getCartItems(),
           ),
           BlocProvider(create: (context) => PaymentCubit(PaymobRepo())),
+          BlocProvider(create: (context) => FavoriteCubit()..loadFavorites()),
         ],
         child: const CartViewBody(),
       ),
